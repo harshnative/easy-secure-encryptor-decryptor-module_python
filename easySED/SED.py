@@ -19,6 +19,8 @@ class ED:
         self.keySalt1 = None
         self.keySalt2 = None
 
+        self.securityLevelHigh = True
+
 
     # function for checking if a password contain all lower , upper , nums and special case characters and also if is of 12 digit or not 
     def checkPass(self , string):
@@ -92,27 +94,37 @@ class ED:
             return False
 
         return True
+
+    
+    def setSecurityLevel_toLow(self):
+        self.securityLevelHigh = False
         
 
     # fucntion for setting the password , pin , keysalt
     # password must contain all lower , upper , nums , sp chars
     # pin must be of 6 digit
-    def setPassword_Pin_keySalt(self , password , pin , keySalt):
+    def setPassword_Pin_keySalt(self , password , pin = 123456 , keySalt = "harshnative"):
 
         password = str(password)
         pin = str(pin)
         keySalt = str(keySalt)
         
-        if(self.checkPass(password)):
-            self.__password = str(copy.copy(password))
+        if(self.securityLevelHigh):
+            if(self.checkPass(password)):
+                self.__password = str(copy.copy(password))
+            else:
+                raise Exception("please set a 12 digit pass containing at least lower , upper , nums , special character \nOr you can set the security level to low")
+        
         else:
-            raise Exception("please set a 12 digit pass containing at least lower , upper , nums , special character")
-
+            self.__password = str(copy.copy(password))
+        
         if(self.checkPin(pin)):
             self.__pin = str(copy.copy(pin))
         else:
-            raise Exception("please set a 6 digit pin")
+            raise Exception("please set a 6 digit pin \nOr you can set the security level to low")
 
+
+        
         lenKeySalt = len(keySalt)
         self.keySalt1 = keySalt[:lenKeySalt]
         self.keySalt2 = keySalt[lenKeySalt:]
@@ -222,8 +234,8 @@ class ED:
 
 if __name__ == "__main__":
     e = ED()
-
-    e.setPassword_Pin_keySalt("#Hellono 123" , "362880" , "letscodeofficial")
+    e.setSecurityLevel_toLow()
+    e.setPassword_Pin_keySalt("#123" , "362880" , "letscodeofficial.com")
 
     encoded  = e.encrypter("helloBoi")
     print(encoded)
