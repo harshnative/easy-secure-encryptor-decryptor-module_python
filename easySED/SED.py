@@ -223,7 +223,7 @@ class ED:
 if __name__ == "__main__":
     e = ED()
 
-    e.setPassword_Pin_keySalt("#Include 123" , "362880" , "letscodeofficial")
+    e.setPassword_Pin_keySalt("#Hellono 123" , "362880" , "letscodeofficial")
 
     encoded  = e.encrypter("helloBoi")
     print(encoded)
