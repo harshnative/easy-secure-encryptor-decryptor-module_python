@@ -290,7 +290,7 @@ class ED:
             return decoded_text.decode("utf-8")
         
 
-    # function to check whether the passwo
+    # function to check whether the credentials provided can decrypt the string passed
     def canDecrypt(self , stringToDecrypt):
 
         self.checkIfPossible()
@@ -302,36 +302,17 @@ class ED:
             myList = stringToDecrypt.split("////////////")
 
             if(len(myList) != 3):
-                raise Exception("could not decrypt")
+                return False
 
             # checking if the password is correct or not
             toComparePass = onetimepad.decrypt(myList[0] , convPass)
             if(toComparePass != self.__password):
-                raise Exception("could not decrypt , password does not match")
+                return False
 
-            # getting the key
-            newKey = onetimepad.decrypt(myList[1] , self.keySalt1 + convPass + self.keySalt2)
-
-            # conv strings to bytes
-            key = bytes(newKey , "utf-8")
-
-            cipher_suite = Fernet(key)
-            decoded_text = cipher_suite.decrypt(bytes(myList[2] , "utf-8"))
-
-            return decoded_text.decode("utf-8")
+            return True 
 
         else:
-
-            # getting the key
-            newKey = onetimepad.decrypt(stringToDecrypt[:88] , self.keySalt1 + convPass + self.keySalt2)
-
-            # conv strings to bytes
-            key = bytes(newKey , "utf-8")
-
-            cipher_suite = Fernet(key)
-            decoded_text = cipher_suite.decrypt(bytes(stringToDecrypt[88:] , "utf-8"))
-
-            return decoded_text.decode("utf-8")
+            return None
 
         
 
@@ -353,6 +334,7 @@ if __name__ == "__main__":
 
     encoded  = e.encrypter("helloBoi")
     print(encoded)
+    print(e.canDecrypt(encoded))
     decoded = e.decrypter(encoded)
     print(decoded)
 
