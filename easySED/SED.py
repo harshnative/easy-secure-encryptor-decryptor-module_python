@@ -3,6 +3,21 @@ import onetimepad
 import copy
 
 
+def isSubString(string, subString):
+    lengthOfSubString = len(subString)
+    try:
+        for i, j in enumerate(string):
+            if(j == subString[0]):
+                if(subString == string[i:i+lengthOfSubString]):
+                    return True
+                else:
+                    pass
+        return False
+    except Exception as e:
+        return False
+
+
+
 class ED:
 
     def __init__(self):
@@ -20,6 +35,20 @@ class ED:
         self.keySalt2 = None
 
         self.securityLevelHigh = True
+        self.outpass = False
+
+    
+    # function to output the encrypted password as well in the outputted string
+    def setOutPutPass(self):
+        self.outpass = True
+
+    def setOwnSaltList(self , saltList):
+        if(len(saltList) != 6):
+            raise Exception("please pass 6 strings in list")
+
+        else:
+            self.saltList = saltList
+
 
 
     # function for checking if a password contain all lower , upper , nums and special case characters and also if is of 12 digit or not 
@@ -163,34 +192,57 @@ class ED:
     def encrypter(self , stringToEncrypt):
 
         self.checkIfPossible()
-        
+            
         stringToReturn = ""
 
         convPass = self.convPassword()
 
-        # password that will be added is encrypted by the convPass
-        passwordToAdd = onetimepad.encrypt(self.__password , convPass)
+        if(not(self.outpass)):
+
+            # key
+            key = Fernet.generate_key()
+            
+            # conv key from bytes to str 
+            newKey = key.decode("utf-8")
+
+            # encryting the key using the conv pass and keysalts
+            keyToAdd = onetimepad.encrypt(newKey , self.keySalt1 + convPass + self.keySalt2)
 
 
-        # key
-        key = Fernet.generate_key()
-        
-        # conv key from bytes to str 
-        newKey = key.decode("utf-8")
+            # conv string to bytes
+            stringToPass = bytes(stringToEncrypt , "utf-8")
 
-        # encryting the key using the conv pass and keysalts
-        keyToAdd = onetimepad.encrypt(newKey , self.keySalt1 + convPass + self.keySalt2)
+            cipher_suite = Fernet(key)
+            encoded_text = cipher_suite.encrypt(stringToPass)
+            stringToAdd = encoded_text.decode("utf-8")
 
-
-        # conv string to bytes
-        stringToPass = bytes(stringToEncrypt , "utf-8")
-
-        cipher_suite = Fernet(key)
-        encoded_text = cipher_suite.encrypt(stringToPass)
-        stringToAdd = encoded_text.decode("utf-8")
+            stringToReturn = keyToAdd + stringToAdd
 
 
-        stringToReturn = passwordToAdd + "////////////" + keyToAdd + "////////////" + stringToAdd
+        else:
+
+            # password that will be added is encrypted by the convPass
+            passwordToAdd = onetimepad.encrypt(self.__password , convPass)
+
+            # key
+            key = Fernet.generate_key()
+            
+            # conv key from bytes to str 
+            newKey = key.decode("utf-8")
+
+            # encryting the key using the conv pass and keysalts
+            keyToAdd = onetimepad.encrypt(newKey , self.keySalt1 + convPass + self.keySalt2)
+
+
+            # conv string to bytes
+            stringToPass = bytes(stringToEncrypt , "utf-8")
+
+            cipher_suite = Fernet(key)
+            encoded_text = cipher_suite.encrypt(stringToPass)
+            stringToAdd = encoded_text.decode("utf-8")
+
+
+            stringToReturn = passwordToAdd + "////////////" + keyToAdd + "////////////" + stringToAdd
 
         return stringToReturn
 
@@ -201,27 +253,85 @@ class ED:
 
         convPass = self.convPassword()
 
-        myList = stringToDecrypt.split("////////////")
+        if(isSubString(stringToDecrypt , "////////////")):
 
-        if(len(myList) != 3):
-            raise Exception("could not decrypt")
+            myList = stringToDecrypt.split("////////////")
 
-        # checking if the password is correct or not
-        toComparePass = onetimepad.decrypt(myList[0] , convPass)
-        if(toComparePass != self.__password):
-            raise Exception("could not decrypt , password does not match")
+            if(len(myList) != 3):
+                raise Exception("could not decrypt")
 
-        # getting the key
-        newKey = onetimepad.decrypt(myList[1] , self.keySalt1 + convPass + self.keySalt2)
+            # checking if the password is correct or not
+            toComparePass = onetimepad.decrypt(myList[0] , convPass)
+            if(toComparePass != self.__password):
+                raise Exception("could not decrypt , password does not match")
 
-        # conv strings to bytes
-        key = bytes(newKey , "utf-8")
+            # getting the key
+            newKey = onetimepad.decrypt(myList[1] , self.keySalt1 + convPass + self.keySalt2)
 
-        cipher_suite = Fernet(key)
-        decoded_text = cipher_suite.decrypt(bytes(myList[2] , "utf-8"))
+            # conv strings to bytes
+            key = bytes(newKey , "utf-8")
 
-        return decoded_text.decode("utf-8")
+            cipher_suite = Fernet(key)
+            decoded_text = cipher_suite.decrypt(bytes(myList[2] , "utf-8"))
+
+            return decoded_text.decode("utf-8")
+
+        else:
+
+            # getting the key
+            newKey = onetimepad.decrypt(stringToDecrypt[:88] , self.keySalt1 + convPass + self.keySalt2)
+
+            # conv strings to bytes
+            key = bytes(newKey , "utf-8")
+
+            cipher_suite = Fernet(key)
+            decoded_text = cipher_suite.decrypt(bytes(stringToDecrypt[88:] , "utf-8"))
+
+            return decoded_text.decode("utf-8")
         
+
+    # function to check whether the passwo
+    def canDecrypt(self , stringToDecrypt):
+
+        self.checkIfPossible()
+
+        convPass = self.convPassword()
+
+        if(isSubString(stringToDecrypt , "////////////")):
+
+            myList = stringToDecrypt.split("////////////")
+
+            if(len(myList) != 3):
+                raise Exception("could not decrypt")
+
+            # checking if the password is correct or not
+            toComparePass = onetimepad.decrypt(myList[0] , convPass)
+            if(toComparePass != self.__password):
+                raise Exception("could not decrypt , password does not match")
+
+            # getting the key
+            newKey = onetimepad.decrypt(myList[1] , self.keySalt1 + convPass + self.keySalt2)
+
+            # conv strings to bytes
+            key = bytes(newKey , "utf-8")
+
+            cipher_suite = Fernet(key)
+            decoded_text = cipher_suite.decrypt(bytes(myList[2] , "utf-8"))
+
+            return decoded_text.decode("utf-8")
+
+        else:
+
+            # getting the key
+            newKey = onetimepad.decrypt(stringToDecrypt[:88] , self.keySalt1 + convPass + self.keySalt2)
+
+            # conv strings to bytes
+            key = bytes(newKey , "utf-8")
+
+            cipher_suite = Fernet(key)
+            decoded_text = cipher_suite.decrypt(bytes(stringToDecrypt[88:] , "utf-8"))
+
+            return decoded_text.decode("utf-8")
 
         
 
@@ -234,13 +344,19 @@ class ED:
 
 if __name__ == "__main__":
     e = ED()
+
+    saltList = ["This" , "is" , "an" , "industry" , "level" , "encryption"]
+
     e.setSecurityLevel_toLow()
     e.setPassword_Pin_keySalt("#123" , "362880" , "letscodeofficial.com")
+    e.setOwnSaltList(saltList)
 
     encoded  = e.encrypter("helloBoi")
     print(encoded)
     decoded = e.decrypter(encoded)
     print(decoded)
+
+    
 
         
 
