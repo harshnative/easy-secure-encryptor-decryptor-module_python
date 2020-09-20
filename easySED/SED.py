@@ -129,7 +129,7 @@ class ED:
         self.securityLevelHigh = False
         
 
-    # fucntion for setting the password , pin , keysalt
+    # function for setting the password , pin , keysalt
     # password must contain all lower , upper , nums , sp chars
     # pin must be of 6 digit
     def setPassword_Pin_keySalt(self , password , pin = 123456 , keySalt = "harshnative"):
@@ -187,6 +187,8 @@ class ED:
 
         if((self.keySalt1 == None) and (self.keySalt2 == None)):
             raise Exception("please set key salt")
+    
+
     
     # function to encrypt things
     def encrypter(self , stringToEncrypt):
@@ -329,7 +331,7 @@ if __name__ == "__main__":
     saltList = ["This" , "is" , "an" , "industry" , "level" , "encryption"]
 
     e.setSecurityLevel_toLow()
-    e.setPassword_Pin_keySalt("#123" , "362880" , "letscodeofficial.com")
+    e.setPassword_Pin_keySalt("#123" , "236598" , "letscodeofficial.com")
     e.setOwnSaltList(saltList)
 
     encoded  = e.encrypter("helloBoi")
