@@ -2,7 +2,6 @@ from cryptography.fernet import Fernet
 import onetimepad
 import copy
 
-
 def isSubString(string, subString):
     lengthOfSubString = len(subString)
     try:
