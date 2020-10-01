@@ -11,6 +11,7 @@ install module using pip command
 pip install easySED
 ```
 
+### This module is used for encryting and decrypting things in the easy sqlite module 
 
 ## To import in project - 
 
@@ -30,7 +31,8 @@ generates a random key of length 44 length
             ||
             ++
 
-Takes and password and salt to with the pin provided (123456 is used if not provided)
+Takes a password and salt to with the pin provided (123456 is used if not provided)
+
 Salting works with this function
 ```python
 count = 0
@@ -78,13 +80,16 @@ obj.setSecurityLevel_toLow()     # not recommended
 ```
 
 
+Also is it recommend that you deallocate the password from your script by del operator
+
+
 2. you can also set your own salt list 
 
 ```python
 obj.setOwnSaltList(saltListPass)
 ```
 
-Remember length of the list must be 6
+Remember length of the list must be 6 containing strings
 
 3. if you want to output the password in the encrypted form so that the decryptor can tell if it can decrypt the string correctly or not the you have to call this function
 
@@ -94,7 +99,7 @@ remember - avoid this were ever possible , as it makes the things less secure
 obj.setOutPutPass()
 ```
 
-4. you can chech whether the string an be decrypted or not
+4. you can chech whether the string can be decrypted or not
 
 ```python
 obj.canDecrypt()
@@ -125,6 +130,22 @@ obj.decrypter(passStringHere)
 ```
 
 raise error if fails to decypt the things
+
+
+## making things more secure 
+
+It is recommend that follow these steps for a unbreakable encrytion
+
+1. set a password with at least 12 characters containing all lower case , upper case , numbers , special characters etc (passed into password set function)
+
+2. set a pin (passed into password set function)
+
+3. set your own key salt (passed into password set function)
+
+4. set your own salt list (passed into saltListSet function)
+
+#### Note - you need to remember only the password and pin , you can make key salt and keyList specific for a program , but do not you need all of these to decryt your data back
+
 
 
 

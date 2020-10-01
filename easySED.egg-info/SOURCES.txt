@@ -1,0 +1,10 @@
+README.md
+setup.py
+easySED/SED.py
+easySED/__init__.py
+easySED/test.py
+easySED.egg-info/PKG-INFO
+easySED.egg-info/SOURCES.txt
+easySED.egg-info/dependency_links.txt
+easySED.egg-info/requires.txt
+easySED.egg-info/top_level.txt
