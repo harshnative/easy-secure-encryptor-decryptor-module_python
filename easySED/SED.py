@@ -1,6 +1,8 @@
 from cryptography.fernet import Fernet
 import onetimepad
 import copy
+import hashlib
+
 
 def isSubString(string, subString):
     lengthOfSubString = len(subString)
@@ -37,10 +39,7 @@ class ED:
         self.outpass = False
 
     
-    # function to output the encrypted password as well in the outputted string
-    def setOutPutPass(self):
-        self.outpass = True
-
+    # function to set your own list
     def setOwnSaltList(self , saltList):
         if(len(saltList) != 6):
             raise Exception("please pass 6 strings in list")
@@ -153,10 +152,10 @@ class ED:
 
 
         
-        lenKeySalt = len(keySalt)
+        lenKeySalt = round(len(keySalt) / 2 )
+
         self.keySalt1 = keySalt[:lenKeySalt]
         self.keySalt2 = keySalt[lenKeySalt:]
-
 
 
     # function to add salt to the password
@@ -198,130 +197,62 @@ class ED:
 
         convPass = self.convPassword()
 
-        if(not(self.outpass)):
+        # key
+        key = Fernet.generate_key()
+        
+        # conv key from bytes to str 
+        newKey = key.decode("utf-8")
 
-            # key
-            key = Fernet.generate_key()
-            
-            # conv key from bytes to str 
-            newKey = key.decode("utf-8")
-
-            # encryting the key using the conv pass and keysalts
-            keyToAdd = onetimepad.encrypt(newKey , self.keySalt1 + convPass + self.keySalt2)
+        # encryting the key using the conv pass and keysalts
+        keyToAdd = onetimepad.encrypt(newKey , self.keySalt1 + convPass + self.keySalt2)
 
 
-            # conv string to bytes
-            stringToPass = bytes(stringToEncrypt , "utf-8")
+        # conv string to bytes
+        stringToPass = bytes(stringToEncrypt , "utf-8")
 
-            cipher_suite = Fernet(key)
-            encoded_text = cipher_suite.encrypt(stringToPass)
-            stringToAdd = encoded_text.decode("utf-8")
+        cipher_suite = Fernet(key)
+        encoded_text = cipher_suite.encrypt(stringToPass)
+        stringToAdd = encoded_text.decode("utf-8")
 
-            stringToReturn = keyToAdd + stringToAdd
-
-
-        else:
-
-            # password that will be added is encrypted by the convPass
-            passwordToAdd = onetimepad.encrypt(self.__password , convPass)
-
-            # key
-            key = Fernet.generate_key()
-            
-            # conv key from bytes to str 
-            newKey = key.decode("utf-8")
-
-            # encryting the key using the conv pass and keysalts
-            keyToAdd = onetimepad.encrypt(newKey , self.keySalt1 + convPass + self.keySalt2)
-
-
-            # conv string to bytes
-            stringToPass = bytes(stringToEncrypt , "utf-8")
-
-            cipher_suite = Fernet(key)
-            encoded_text = cipher_suite.encrypt(stringToPass)
-            stringToAdd = encoded_text.decode("utf-8")
-
-
-            stringToReturn = passwordToAdd + "////////////" + keyToAdd + "////////////" + stringToAdd
+        stringToReturn = keyToAdd + stringToAdd
 
         return stringToReturn
 
     
+
+
     def decrypter(self , stringToDecrypt):
 
         self.checkIfPossible()
 
         convPass = self.convPassword()
 
-        if(isSubString(stringToDecrypt , "////////////")):
+        # getting the key
+        newKey = onetimepad.decrypt(stringToDecrypt[:88] , self.keySalt1 + convPass + self.keySalt2)
 
-            myList = stringToDecrypt.split("////////////")
+        # conv strings to bytes
+        key = bytes(newKey , "utf-8")
 
-            if(len(myList) != 3):
-                raise Exception("could not decrypt")
+        cipher_suite = Fernet(key)
+        decoded_text = cipher_suite.decrypt(bytes(stringToDecrypt[88:] , "utf-8"))
 
-            # checking if the password is correct or not
-            toComparePass = onetimepad.decrypt(myList[0] , convPass)
-            if(toComparePass != self.__password):
-                raise Exception("could not decrypt , password does not match")
+        return decoded_text.decode("utf-8")
 
-            # getting the key
-            newKey = onetimepad.decrypt(myList[1] , self.keySalt1 + convPass + self.keySalt2)
 
-            # conv strings to bytes
-            key = bytes(newKey , "utf-8")
+    
+    def returnEncryptedPassword(self , password):
+        sha_signature = hashlib.sha256(password.encode()).hexdigest()
+        return sha_signature.decode("utf-8")
 
-            cipher_suite = Fernet(key)
-            decoded_text = cipher_suite.decrypt(bytes(myList[2] , "utf-8"))
 
-            return decoded_text.decode("utf-8")
+    def authenticatePassword(self, passwordInput , hashedPassword):
+        sha_signature = hashlib.sha256(passwordInput.encode()).hexdigest()
 
+        if(sha_signature == hashedPassword):
+            return True
         else:
+            return False
 
-            # getting the key
-            newKey = onetimepad.decrypt(stringToDecrypt[:88] , self.keySalt1 + convPass + self.keySalt2)
-
-            # conv strings to bytes
-            key = bytes(newKey , "utf-8")
-
-            cipher_suite = Fernet(key)
-            decoded_text = cipher_suite.decrypt(bytes(stringToDecrypt[88:] , "utf-8"))
-
-            return decoded_text.decode("utf-8")
-        
-
-    # function to check whether the credentials provided can decrypt the string passed
-    def canDecrypt(self , stringToDecrypt):
-
-        self.checkIfPossible()
-
-        convPass = self.convPassword()
-
-        if(isSubString(stringToDecrypt , "////////////")):
-
-            myList = stringToDecrypt.split("////////////")
-
-            if(len(myList) != 3):
-                return False
-
-            # checking if the password is correct or not
-            toComparePass = onetimepad.decrypt(myList[0] , convPass)
-            if(toComparePass != self.__password):
-                return False
-
-            return True 
-
-        else:
-            return None
-
-        
-
-
-
-
-
-        
 
 
 if __name__ == "__main__":
@@ -333,9 +264,8 @@ if __name__ == "__main__":
     e.setPassword_Pin_keySalt("#123" , "236598" , "letscodeofficial.com")
     e.setOwnSaltList(saltList)
 
-    encoded  = e.encrypter("helloBoi")
+    encoded  = e.encrypter("hello world")
     print(encoded)
-    print(e.canDecrypt(encoded))
     decoded = e.decrypter(encoded)
     print(decoded)
 

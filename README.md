@@ -53,21 +53,32 @@ Salt list is setted by default - ["This" , "is" , "an" , "industry" , "level" , 
             ++
 
 Then we encrypt this key using the world class one time pad crytography
-This is encrypted by key which is returnedNewpass + keySalt (by default = "harshnative)
 
-then we encrypt the thing using the key and add it to encrypted key
+This is encrypted by key which is salted password (using pin and salt list) + keySalt (by default = "harshnative)
+
+then we encrypt the string passed using the key and add it to encrypted key
 
 and done
 
 
+### Note - if you want the thing to be decryted on any computer with the help of password and pin , then it is recommend to not change the salt list and keysalt
+
+
 ## How secure is this
 
-if you change all the salt list , pin , set a 12 digit pass , set security level to high , and keysalt then this encypted string should be unbreakable by any super computer in the world at least in a persons life time
+If you change all the salt list , pin , set a 12 digit pass , set security level to high , and keysalt then this encypted string should be unbreakable by any super computer in the world at least in a persons life time.
+
+One time cryptography is the safest technique to encryt anything
+
+Also this method combines the one time pad with pythons built in cryptography technique for more security
+
+Also the encrypted string is always changed
 
 
 ## Methods - 
 
-1. 
+#### Set the password and (Optional - pin , keysalt)
+
 ```python
 obj.setPassword_Pin_keySalt(password , pin = 123456 , keySalt = "harshnative")
 ```
@@ -80,10 +91,12 @@ obj.setSecurityLevel_toLow()     # not recommended
 ```
 
 
-Also is it recommend that you deallocate the password from your script by del operator
+Also is it recommend that you deallocate the password from your script by using del operator
+
+As password is stored in the object created for further encyrption and decryption using the same object
 
 
-2. you can also set your own salt list 
+#### Optional - Set your own salt list for more security
 
 ```python
 obj.setOwnSaltList(saltListPass)
@@ -91,23 +104,28 @@ obj.setOwnSaltList(saltListPass)
 
 Remember length of the list must be 6 containing strings
 
-3. if you want to output the password in the encrypted form so that the decryptor can tell if it can decrypt the string correctly or not the you have to call this function
 
-remember - avoid this were ever possible , as it makes the things less secure
+#### Store the password in the encrypted form for further authentication stuff
 
+Password is encrypted using SHA256 algo here
 ```python
-obj.setOutPutPass()
+encrypted_password = obj.returnEncryptedPassword(password)
 ```
 
-4. you can chech whether the string can be decrypted or not
+now you can store this encrypted string any where
+
+you can also encrypt the pin with the help of this
+
+
+#### Authenticate the input password using previously stored password
+
+Password is encrypted using SHA256 algo here
 
 ```python
-obj.canDecrypt()
+isCorrect = obj.authenticatePassword(passwordInput , hashedPassword)
 ```
 
-return True or false 
-
-or returns None if password was provided in the encrypted string
+This function returns True or False depending on if the password input matches the stored password
 
 
 ## encrypting
@@ -116,7 +134,7 @@ after setting the password and optional things like keysalt , pin , saltlist etc
 call this method and pass on the string to be encrypted here
 
 ```python
-obj.encrypter(passStringHere)
+encrypted_string = obj.encrypter(passStringHere)
 ```
 
 
@@ -126,10 +144,8 @@ after setting the password and optional things like keysalt , pin , saltlist etc
 call this method and pass on the ecnrypted string here
 
 ```python
-obj.decrypter(passStringHere)
+decrypted_string = obj.decrypter(passStringHere)
 ```
-
-raise error if fails to decypt the things
 
 
 ## making things more secure 
@@ -138,13 +154,13 @@ It is recommend that follow these steps for a unbreakable encrytion
 
 1. set a password with at least 12 characters containing all lower case , upper case , numbers , special characters etc (passed into password set function)
 
-2. set a pin (passed into password set function)
+2. set a 6 digit pin (passed into password set function)
 
 3. set your own key salt (passed into password set function)
 
 4. set your own salt list (passed into saltListSet function)
 
-#### Note - you need to remember only the password and pin , you can make key salt and keyList specific for a program , but do not you need all of these to decryt your data back
+#### Note - you need to remember only the password and pin , you can make key salt and keyList specific for a program , but do note you need all of these to decryt your data back
 
 
 
@@ -155,25 +171,24 @@ It is recommend that follow these steps for a unbreakable encrytion
 ```python 
 from easySED import SED
 
-e = SED.ED()
+e = SED.ED()    
 
-saltList = ["hello" , "is" , "an" , "my" , "level" , "encryption"]
+saltList = ["This" , "is" , "an" , "industry" , "level" , "encryption"]
 
 e.setSecurityLevel_toLow()
 e.setPassword_Pin_keySalt("#123" , "236598" , "letscodeofficial.com")
 e.setOwnSaltList(saltList)
 
-encoded  = e.encrypter("helloBoi")
+encoded  = e.encrypter("hello world")
 print(encoded)
-print(e.canDecrypt(encoded))
 decoded = e.decrypter(encoded)
 print(decoded)
 
+
 # output - 
 
-# 1b01192129380d23225231202e060b0d16350c1950753c0e005a02113d060b5f3c3505280a31322a1c3d5151gAAAAABfZzh-TaV4qNffIN7eu94lfzueGuIf_pcLr_BWhGkwTUAJm9DcCY5xq-Gj3k2FtysNPI0NjZZkS6YGyx6CCMww2A0g3Q==
-# None
-# helloBoi
+# 035103231523001408274507110236205c0d3f5d17304e1f0506010a21010607125922202a2030262d0b000fgAAAAABffDaHXlCSSqh7bDAqe3AbosJJ06DSuxbhCqQMYg0SEHNVk4LAkQqP6j-eugXsLEvjgVpV6PQPAAX4d-cPiMZt70iBdw==
+# hello world
 ```
 
 ### Contibute - 
