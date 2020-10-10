@@ -13,7 +13,9 @@ class ED:
         self.__convPass = None
 
     # function for checking if a password contain all lower , upper , nums and special case characters and also if is of required length or not 
-    def checkPass(self , string , minLength = 8 , lowerCase = True , upperCase = True , nums = True , specialChar = True):
+    def checkPass(self , passwordInput , minLength = 8 , lowerCase = True , upperCase = True , nums = True , specialChar = True):
+
+        string = passwordInput
 
         # checking for 12 digit length 
         if(len(string) < minLength):
@@ -57,6 +59,7 @@ class ED:
             elif(s in numsList):
                 tempList.append("n")
 
+        del string
 
         if("l" in tempList):
             if(not(lowerCase)):
@@ -89,6 +92,7 @@ class ED:
         self.__password = str(copy.copy(self.getEncryptedPassword(str(password))))
     
         self.__convPass = self.convPassword()
+
 
     # function to add salt to the password
     def convPassword(self):
@@ -189,7 +193,8 @@ class ED:
 
     
     def returnPassForStoring(self):
-        return self.__convPass
+        sha_signature = hashlib.sha512(self.__convPass.encode()).hexdigest()
+        return sha_signature
 
     def authenticatePassword(self, storedPass , passwordInput , pinInput = 123456):
         
@@ -199,7 +204,7 @@ class ED:
 
         self.setPassword_Pin(passwordInput , pinInput)
 
-        if(str(self.__convPass) == str(storedPass)):
+        if(str(hashlib.sha512(self.__convPass.encode()).hexdigest()) == str(storedPass)):
             self.__password = tempPass
             self.__pin = tempPin
             self.__convPass = tempConvPass
