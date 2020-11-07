@@ -210,19 +210,24 @@ class ED:
     
     def returnPassForStoring(self):
 
-        # this password will be
+        # this password will be used as a reference for authentication stuff
         sha_signature = hashlib.sha512(self.__convPass.encode()).hexdigest()
         return sha_signature
 
     def authenticatePassword(self, storedPass , passwordInput , pinInput = 123456):
         
+        # storing values for that they can be restored
         tempPass = self.__password
         tempPin = self.__pin
         tempConvPass = self.__convPass
 
+        # setting the password provided
         self.setPassword_Pin(passwordInput , pinInput)
 
+        # if the password provided after encryption matches the already stored password then it the right user
         if(str(hashlib.sha512(self.__convPass.encode()).hexdigest()) == str(storedPass)):
+
+            # restoring things 
             self.__password = tempPass
             self.__pin = tempPin
             self.__convPass = tempConvPass
@@ -244,11 +249,16 @@ class ED:
 
             return False
 
+    # method to encrypt any file
+    # takes the file at filePath and encryptes it and outputs a encrypted file data in a txt format in destPath
+    # also a file named __key will be outputed at the destPath cotaining the encrypted key , the password encrypted using SHA512 for authentication and the file name which is going to be encrypted
+    # the above key file is very important , it is necessary for decrypting the file
     def encryptFile(self , filePath , destPath):
 
         fileName = ""
         tempCount = 0
 
+        # getting the file name
         for i in filePath[::-1]:
             
             if(self.isOnWindows):
@@ -266,80 +276,112 @@ class ED:
 
         fileName = fileName[::-1]
 
+        # getting the key file path = destPath + filename + __key.txt
         if(self.isOnWindows):
             keyFilePath = destPath + "\\" + fileName + "__key.txt"
         else:
             keyFilePath = destPath + "/" + fileName + "__key.txt"
 
+        # opening the file 
         with open(filePath , 'rb') as file:
             data = file.read()
 
+            # 0 is for file is opened completely
             yield 0
 
             key = Fernet.generate_key()
 
+            # writing the key file 
             with open(keyFilePath , "w+") as keyFile:
+
+                # bytes key to string to encrypted string using SED
                 newKey = key.decode('utf-8')
                 encodedKey = self.encrypter(newKey)
 
                 encryptedPass = self.returnPassForStoring()
 
+                # key , pass for storing , fileName
                 keyFile.write(encodedKey + "________" + encryptedPass + "________" + fileName)
 
+                # 1 represent writing key file is completed
                 yield 1
 
+            # encrypting the actual file
             cipher_suite = Fernet(key)
             encoded_text = cipher_suite.encrypt(data)
 
+            # 2 represent the file as been encrypted
             yield 2 
 
+            # output file path = destPath + fileName + __enc.txt
             if(self.isOnWindows):
                 destFilePath = destPath + "\\" + fileName + "__enc.txt"
             else:
                 destFilePath = destPath + "/" + fileName + "__enc.txt"
 
+            # writing the encrypted data
             with open(destFilePath , 'w+b') as f:
                 f.write(encoded_text)
 
+                # 3 represent that the project is done
                 yield 3
 
 
-
+    # method to decrypt a file
+    # file path is the path to file which is encrypted using same module
+    # key file path is the file path which was outputted when the file was been encrypted
+    # destPath is the path were the decrypted file will be present
     def decryptFile(self , filePath , keyFilePath , destPath):
 
+        # opening the encryted file
         with open(filePath , 'rb') as file:
             encodedData = file.read()
 
+            # 0 represent the file read is completed
             yield 0
 
+            # opening the key file
             with open(keyFilePath , 'r') as keyFile:
                 tempText = keyFile.read()
 
                 tempList = tempText.split("________")
 
+                # first was encrypted key
                 encryptedKey = tempList[0]
+
+                # second was the ecrypted Pass
                 encryptedPass = tempList[1]
+
+                if(encryptedPass != self.returnPassForStoring()):
+                    raise RuntimeError("password / pin does not match ... ")
+
+                # third was the file name
                 fileName = tempList[2]
 
                 newKey = self.decrypter(encryptedKey)
                 key = newKey.encode('utf-8')
 
+                # 1 represent that the reading of key file was completed
                 yield 1
                 
                 cipher_suite = Fernet(key)
 
                 decoded = cipher_suite.decrypt(encodedData)
 
+                # 2 represent that the decrypting was completed
                 yield 2
             
+                # dest file path = destPath + dec__ + fileName
                 if(self.isOnWindows):
                     destFilePath = destPath + "\\" + "dec__" + fileName 
                 else:
                     destFilePath = destPath + "/" + "dec__" + fileName
 
+                # generating the original file
                 with open(destFilePath , 'wb') as a:
                     a.write(decoded)   
 
+                    # 3 represent that the process is completed
                     yield 3
         
 
