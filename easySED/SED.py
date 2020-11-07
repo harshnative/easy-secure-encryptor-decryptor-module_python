@@ -3,6 +3,8 @@ import onetimepad
 import copy
 import hashlib
 
+import platform
+
 class ED:
 
     def __init__(self):
@@ -11,6 +13,18 @@ class ED:
         self.__pin = None
         self.__password = None
         self.__convPass = None
+
+
+        self.isOnWindows = False
+        self.isOnLinux = True
+
+        # Checking weather the user is on windows or not
+        osUsing = platform.system()
+
+        if(osUsing == "Windows"):
+            self.isOnWindows = True
+        else:
+            self.isOnLinux = True
 
     # function for checking if a password contain all lower , upper , nums and special case characters and also if is of required length or not 
     def checkPass(self , passwordInput , minLength = 8 , lowerCase = True , upperCase = True , nums = True , specialChar = True):
@@ -188,11 +202,15 @@ class ED:
 
     
     def getEncryptedPassword(self , password):
+
+        # this password is stored in the memory for encrypting and decrypting using same obj of the class ED
         sha_signature = hashlib.sha256(password.encode()).hexdigest()
         return sha_signature
 
     
     def returnPassForStoring(self):
+
+        # this password will be
         sha_signature = hashlib.sha512(self.__convPass.encode()).hexdigest()
         return sha_signature
 
@@ -226,6 +244,104 @@ class ED:
 
             return False
 
+    def encryptFile(self , filePath , destPath):
+
+        fileName = ""
+        tempCount = 0
+
+        for i in filePath[::-1]:
+            
+            if(self.isOnWindows):
+                if((i == "\\")):
+                    break
+                else:
+                    fileName = fileName + i
+            else:
+                if(i == "/"):
+                    break
+                else:
+                    fileName = fileName + i         
+
+            tempCount += 1   
+
+        fileName = fileName[::-1]
+
+        if(self.isOnWindows):
+            keyFilePath = destPath + "\\" + fileName + "__key.txt"
+        else:
+            keyFilePath = destPath + "/" + fileName + "__key.txt"
+
+        with open(filePath , 'rb') as file:
+            data = file.read()
+
+            yield 0
+
+            key = Fernet.generate_key()
+
+            with open(keyFilePath , "w+") as keyFile:
+                newKey = key.decode('utf-8')
+                encodedKey = self.encrypter(newKey)
+
+                encryptedPass = self.returnPassForStoring()
+
+                keyFile.write(encodedKey + "________" + encryptedPass + "________" + fileName)
+
+                yield 1
+
+            cipher_suite = Fernet(key)
+            encoded_text = cipher_suite.encrypt(data)
+
+            yield 2 
+
+            if(self.isOnWindows):
+                destFilePath = destPath + "\\" + fileName + "__enc.txt"
+            else:
+                destFilePath = destPath + "/" + fileName + "__enc.txt"
+
+            with open(destFilePath , 'w+b') as f:
+                f.write(encoded_text)
+
+                yield 3
+
+
+
+    def decryptFile(self , filePath , keyFilePath , destPath):
+
+        with open(filePath , 'rb') as file:
+            encodedData = file.read()
+
+            yield 0
+
+            with open(keyFilePath , 'r') as keyFile:
+                tempText = keyFile.read()
+
+                tempList = tempText.split("________")
+
+                encryptedKey = tempList[0]
+                encryptedPass = tempList[1]
+                fileName = tempList[2]
+
+                newKey = self.decrypter(encryptedKey)
+                key = newKey.encode('utf-8')
+
+                yield 1
+                
+                cipher_suite = Fernet(key)
+
+                decoded = cipher_suite.decrypt(encodedData)
+
+                yield 2
+            
+                if(self.isOnWindows):
+                    destFilePath = destPath + "\\" + "dec__" + fileName 
+                else:
+                    destFilePath = destPath + "/" + "dec__" + fileName
+
+                with open(destFilePath , 'wb') as a:
+                    a.write(decoded)   
+
+                    yield 3
+        
 
 
 
@@ -234,23 +350,34 @@ if __name__ == "__main__":
 
     e.setPassword_Pin("#123hello" , "236598")
 
-    encoded  = e.encrypter("hello world , my name is harsh native and I love programming")
-    print("encypted string = " , encoded)
-    decoded = e.decrypter(encoded)
-    print("\ndecrypted string = " , decoded)
+    filex = r"C:\Users\harsh\Desktop\hello.mp3"
 
-    # password you can store for further authentication 
-    objStore = e.returnPassForStoring()
+    obj1 = e.encryptFile(filex , r"C:\Users\harsh\Desktop\hello")
+    obj2 = e.decryptFile(r"C:\Users\harsh\Desktop\hello\hello.mp3__enc.txt" , r"C:\Users\harsh\Desktop\hello\hello.mp3__key.txt" , r"C:\Users\harsh\Desktop\hello")
 
-    print("\npassword you can store for further authentication = " , objStore)
+    for i in obj1:
+        print(i)
 
-    if(e.authenticatePassword(objStore , "#123hello" , "236598")):
-        print("\nyou are rigth user")
+    for i in obj2:
+        print(i)
+
+    # encoded  = e.encrypter("hello world , my name is harsh native and I love programming")
+    # print("encypted string = " , encoded)
+    # decoded = e.decrypter(encoded)
+    # print("\ndecrypted string = " , decoded)
+
+    # # password you can store for further authentication 
+    # objStore = e.returnPassForStoring()
+
+    # print("\npassword you can store for further authentication = " , objStore)
+
+    # if(e.authenticatePassword(objStore , "#123hello" , "236598")):
+    #     print("\nyou are rigth user")
     
-    if(e.authenticatePassword(objStore , "#123world" , "236598")):
-        print("\nshould not be here")
-    else:
-        print("\nwrong user")
+    # if(e.authenticatePassword(objStore , "#123world" , "236598")):
+    #     print("\nshould not be here")
+    # else:
+    #     print("\nwrong user")
 
 
    
