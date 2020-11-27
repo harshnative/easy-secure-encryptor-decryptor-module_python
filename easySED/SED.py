@@ -2,8 +2,76 @@ from cryptography.fernet import Fernet
 import onetimepad
 import copy
 import hashlib
-
+import os
 import platform
+
+class GlobalMethods:
+
+    @classmethod
+    def isDrive(cls , path = None):
+        count = 0
+        if(path == None):
+            return None
+        else:
+            for i in path:
+                if((i == '\\') or (i == "/")):
+                    count += 1
+        
+        if(count <= 2):
+            return True
+        else:
+            return False
+
+
+
+
+
+
+    @classmethod
+    # function to get the files list in folder passed
+    def getSubFilesList(cls , root, files=True, dirs=False, hidden=False, relative=True, topdown=True):
+        root = os.path.join(root, '')  # add slash if not there
+        for parent, ldirs, lfiles in os.walk(root, topdown=topdown):
+            if relative:
+                parent = parent[len(root):]
+            if dirs and parent:
+                yield os.path.join(parent, '')
+            if not hidden:
+                lfiles   = [nm for nm in lfiles if not nm.startswith('.')]
+                ldirs[:] = [nm for nm in ldirs  if not nm.startswith('.')]  # in place
+            if files:
+                lfiles.sort()
+                for nm in lfiles:
+                    nm = os.path.join(parent, nm)
+                    yield nm
+
+    
+
+    @classmethod
+    # function to get the folders to be generated
+    def getFolderNameToBeGenerated(cls , pathToFile):
+        
+        if(GlobalDataFO.isOnLinux):
+            new = pathToFile.split("/")
+            lenNew = len(new)
+
+            folderPath = ""
+            for j in range(lenNew-1):
+                folderPath = folderPath + new[j] + "/"
+
+
+        else:
+            new = pathToFile.split("\\")
+            lenNew = len(new)
+
+            folderPath = ""
+            for j in range(lenNew-1):
+                folderPath = folderPath + new[j] + "\\"
+            
+        return folderPath
+
+
+
 
 class ED:
 
@@ -376,7 +444,13 @@ class ED:
 
                 # 3 represent that the process is completed
                 yield 3
+
+
+    def encryptDir(self , dirPath , destPath , recursive = True):
+
+        onlyfiles = files_path = [os.path.abspath(x) for x in os.listdir()]
         
+        print(onlyfiles)
 
 
 
@@ -387,14 +461,17 @@ if __name__ == "__main__":
 
     filex = r"C:\Users\harsh\Desktop\hello.mp3"
 
-    obj1 = e.encryptFile(filex , r"C:\Users\harsh\Desktop\hello")
-    obj2 = e.decryptFile(r"C:\Users\harsh\Desktop\hello\hello.mp3__enc" , r"C:\Users\harsh\Desktop\hello")
+    # obj1 = e.encryptFile(filex , r"C:\Users\harsh\Desktop\hello")
+    # obj2 = e.decryptFile(r"C:\Users\harsh\Desktop\hello\hello.mp3__enc" , r"C:\Users\harsh\Desktop\hello")
 
-    for i in obj1:
-        print(i)
+    # for i in obj1:
+    #     print(i)
 
-    for i in obj2:
-        print(i)
+    # for i in obj2:
+    #     print(i)
+
+
+    e.encryptDir(r"C:\Users\harsh\Desktop\hello" , "hello")
 
     # encoded  = e.encrypter("hello world , my name is harsh native and I love programming")
     # print("encypted string = " , encoded)
