@@ -5,6 +5,19 @@ import hashlib
 import os
 import platform
 
+# global variable for operating system detection
+class GlobalDataFO:
+    isOnWindows = False
+    isOnLinux = True
+
+# Checking weather the user is on windows or not
+osUsing = platform.system()
+
+if(osUsing == "Windows"):
+    GlobalDataFO.isOnWindows = True
+    GlobalDataFO.isOnLinux = False
+
+
 class GlobalMethods:
 
     @classmethod
@@ -50,7 +63,7 @@ class GlobalMethods:
     @classmethod
     # function to get the folders to be generated
     def getFolderNameToBeGenerated(cls , pathToFile):
-        
+
         if(GlobalDataFO.isOnLinux):
             new = pathToFile.split("/")
             lenNew = len(new)
@@ -67,9 +80,25 @@ class GlobalMethods:
             folderPath = ""
             for j in range(lenNew-1):
                 folderPath = folderPath + new[j] + "\\"
+
             
         return folderPath
 
+
+    @classmethod
+    # function to get the folders to be generated
+    def getFileName(cls , pathToFile):
+
+        if(GlobalDataFO.isOnLinux):
+            new = pathToFile.split("/")
+            return new[-1]
+
+
+        else:
+            new = pathToFile.split("\\")
+            return new[-1]
+
+        
 
 
 
@@ -361,7 +390,7 @@ class ED:
             encryptedPass = self.returnPassForStoring()
 
             # key , pass for storing , fileName
-            keyFileWrite = encodedKey + "________" + encryptedPass + "________" + fileName
+            keyFileWrite = encodedKey + "----------" + encryptedPass + "----------" + fileName
             # 1 represent writing key file is completed
             yield 1
 
@@ -405,7 +434,7 @@ class ED:
             # working on key
             tempText = encodedDataFromFile[1]
             tempText = str(tempText , encoding="utf-8")
-            tempList = tempText.split("________")
+            tempList = tempText.split("----------")
 
             # first was encrypted key
             encryptedKey = tempList[0]
@@ -413,11 +442,19 @@ class ED:
             # second was the ecrypted Pass
             encryptedPass = tempList[1]
 
+            # encryptedPass = ""
+
+            # for i in oldEncryptedPass:
+            #     if(i != "_"):
+            #         encryptedPass = encryptedPass + i
+
+            
+            # third was the file name
+            fileName = tempList[2]
+
             if(encryptedPass != self.returnPassForStoring()):
                 raise RuntimeError("password / pin does not match ... ")
 
-            # third was the file name
-            fileName = tempList[2]
 
             newKey = self.decrypter(encryptedKey)
             key = newKey.encode('utf-8')
@@ -434,9 +471,9 @@ class ED:
         
             # dest file path = destPath + dec__ + fileName
             if(self.isOnWindows):
-                destFilePath = destPath + "\\" + "dec__" + fileName 
+                destFilePath = destPath + "\\" + fileName 
             else:
-                destFilePath = destPath + "/" + "dec__" + fileName
+                destFilePath = destPath + "/" + fileName
 
             # generating the original file
             with open(destFilePath , 'wb') as a:
@@ -446,11 +483,115 @@ class ED:
                 yield 3
 
 
-    def encryptDir(self , dirPath , destPath , recursive = True):
+    # function to ecrypt the whole dir
+    def encryptDir(self , dirPath , destPath):
 
-        onlyfiles = files_path = [os.path.abspath(x) for x in os.listdir()]
-        
-        print(onlyfiles)
+        fileCount = 0
+
+        # counting the number of file in dir
+        for i in GlobalMethods.getSubFilesList(dirPath , hidden=True):
+            fileCount = fileCount + 1 
+
+        yield fileCount
+
+        # encrypting
+        for i in GlobalMethods.getSubFilesList(dirPath , hidden=True):
+
+            # getting the source name and folder name so that we can pass that to encrypt file function
+            if(GlobalDataFO.isOnLinux):
+                source = dirPath + "/" + i
+                folderToBeGenerated = destPath + "/" + GlobalMethods.getFolderNameToBeGenerated(i)
+            else:
+                source = dirPath + "\\" + i
+                folderToBeGenerated = destPath + "\\" + GlobalMethods.getFolderNameToBeGenerated(i)
+
+            # making the necessary required parent folders to store the encypted file 
+            try:
+                os.makedirs(folderToBeGenerated)
+            except FileExistsError:
+                pass
+            
+            # encryting the file
+            for i in self.encryptFile(source , folderToBeGenerated):
+                pass
+
+            fileCount = fileCount - 1
+            yield fileCount
+
+    # function to decrypt a dir that was encrypted with this module
+    def decryptDir(self , dirPath , destPath , recursive = True):
+
+        fileCount = 0
+
+        # counting the number of file 
+        for i in GlobalMethods.getSubFilesList(dirPath , hidden=True):
+            fileCount = fileCount + 1 
+
+        yield fileCount
+
+        for i in GlobalMethods.getSubFilesList(dirPath , hidden=True):
+
+            # generating the source and dest path to pass the decryptFile method
+            if(GlobalDataFO.isOnLinux):
+                source = dirPath + "/" + i
+                folderToBeGenerated = destPath + "/" + GlobalMethods.getFolderNameToBeGenerated(i)
+            else:
+                source = dirPath + "\\" + i
+                folderToBeGenerated = destPath + "\\" + GlobalMethods.getFolderNameToBeGenerated(i)
+
+            # making the necessary parent folders to store the decrypted file
+            try:
+                os.makedirs(folderToBeGenerated)
+            except FileExistsError:
+                pass
+
+            tries = 0
+
+            # decrypting the file , program will try 3 time max for a file 
+            for i in range(3):
+                try:
+                    for i in self.decryptFile(source , folderToBeGenerated):
+                        pass
+                    break
+                except RuntimeError:
+                    tries += 1
+
+            if(tries > 3):
+                raise Exception("could not decrypt")
+                
+            fileCount = fileCount - 1
+            yield fileCount
+
+
+
+
+# def testing(obj):
+#     e = obj
+#     e.encryptDir(r"C:\Users\harsh\Desktop\hello" , r"C:\Users\harsh\Desktop\hello2")
+#     e.decryptDir(r"C:\Users\harsh\Desktop\hello2" , r"C:\Users\harsh\Desktop\hello3")
+                    
+#     stringList1 = []
+#     stringList2 = []
+
+#     for i in GlobalMethods.getSubFilesList(r"C:\Users\harsh\Desktop\hello"):
+#         with open(r"C:\Users\harsh\Desktop\hello" + "\\" + i , "r") as file:
+#             string = file.read()
+
+#             stringList1.append(string)
+
+#     for i in GlobalMethods.getSubFilesList(r"C:\Users\harsh\Desktop\hello3"):
+#         with open(r"C:\Users\harsh\Desktop\hello3" + "\\" + i , "r") as file:
+#             string = file.read()
+
+#             stringList2.append(string)
+
+#     print(stringList1 == stringList2)
+
+    
+
+
+
+
 
 
 
@@ -471,7 +612,22 @@ if __name__ == "__main__":
     #     print(i)
 
 
-    e.encryptDir(r"C:\Users\harsh\Desktop\hello" , "hello")
+    
+    # testing(e)
+
+    for i in e.encryptDir(r"Z:\docx" , r"C:\Users\harsh\Desktop\hello"):
+        print(i)
+
+    input()
+
+    for i in e.decryptDir(r"C:\Users\harsh\Desktop\hello" , r"C:\Users\harsh\Desktop\hello2"):
+        print(i)
+
+    # for i in e.encryptFile(r"Z:\docx\python.docx" , r"C:\Users\harsh\Desktop"):
+    #     pass
+
+    # for i in e.decryptFile(r"C:\Users\harsh\Desktop\python.docx__enc" , r"C:\Users\harsh\Desktop"):
+    #     pass
 
     # encoded  = e.encrypter("hello world , my name is harsh native and I love programming")
     # print("encypted string = " , encoded)
