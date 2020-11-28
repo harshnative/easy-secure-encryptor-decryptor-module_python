@@ -441,13 +441,6 @@ class ED:
 
             # second was the ecrypted Pass
             encryptedPass = tempList[1]
-
-            # encryptedPass = ""
-
-            # for i in oldEncryptedPass:
-            #     if(i != "_"):
-            #         encryptedPass = encryptedPass + i
-
             
             # third was the file name
             fileName = tempList[2]
@@ -561,35 +554,6 @@ class ED:
                 
             fileCount = fileCount - 1
             yield fileCount
-
-
-
-
-# def testing(obj):
-#     e = obj
-#     e.encryptDir(r"C:\Users\harsh\Desktop\hello" , r"C:\Users\harsh\Desktop\hello2")
-#     e.decryptDir(r"C:\Users\harsh\Desktop\hello2" , r"C:\Users\harsh\Desktop\hello3")
-                    
-#     stringList1 = []
-#     stringList2 = []
-
-#     for i in GlobalMethods.getSubFilesList(r"C:\Users\harsh\Desktop\hello"):
-#         with open(r"C:\Users\harsh\Desktop\hello" + "\\" + i , "r") as file:
-#             string = file.read()
-
-#             stringList1.append(string)
-
-#     for i in GlobalMethods.getSubFilesList(r"C:\Users\harsh\Desktop\hello3"):
-#         with open(r"C:\Users\harsh\Desktop\hello3" + "\\" + i , "r") as file:
-#             string = file.read()
-
-#             stringList2.append(string)
-
-#     print(stringList1 == stringList2)
-
-    
-
-
 
 
 
