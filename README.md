@@ -1,6 +1,6 @@
 # Easy Secure Encryptor Decryptor module
 
-This module to used to add military level encryption system to your project
+This module to used to add military level encryption system to your project , encrypt strings , files and even whole directories etc"
 
 Main Users : 
 Hunders of security oriented applications
@@ -10,6 +10,8 @@ install module using pip command
 ```shell
 pip install easySED
 ```
+
+#### Before you start - it is important that you note the version of this module before installing as sometimes the core method which are outsourced may get updated in pythons next version and make your encrypted file absolite , you remember the version so that you can install that version and prevent the data loss
 
 #### This module is used for encryting and decrypting things in the easy sqlite module also 
 
