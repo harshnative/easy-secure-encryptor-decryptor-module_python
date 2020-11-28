@@ -519,7 +519,7 @@ class ED:
             yield fileCount
 
     # function to decrypt a dir that was encrypted with this module
-    def decryptDir(self , dirPath , destPath , recursive = True):
+    def decryptDir(self , dirPath , destPath):
 
         fileCount = 0
 

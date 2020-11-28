@@ -57,7 +57,7 @@ Also you can use pin for security which is set to 123456 by default
 obj.setPassword_Pin(password , pin = 123456)
 ```
 
-Pin can you of max 6 digits.
+Pin can be of max 6 digits.
 
 It is recommend that you use at least a 12 digit password containing all lower case , upper case , nums , special char for better security
 
@@ -69,22 +69,24 @@ obj.checkPass(passwordInput , minLength = 8 , lowerCase = True , upperCase = Tru
 Above method will return True or False according to level matches or not 
 EX - You can make any of the specialChar = False if you think that is not necessary in your password
 
-It recommend that you deallocate the password from your script by using del operator , As the password is securely stored in the obj
+It recommend that you deallocate the password from your script by using del operator , As the password is securely stored in the obj of this module
 
 
 #### Store the password + pin (123456 by default) in the encrypted form for further authentication stuff
 
-Password is encrypted using SHA512 , SHA256 , stringSalting combinely here
+As you see that string encrypted using this module is different each time , you if you large amounts of data to be decryted and encrypted like when encrypting dirs or data base , then it is better to store a reference password so that the module and check whether the password provided at the time of decryption is same by which the data was encrypted 
+
+Password is encrypted using SHA512 , SHA256 , stringSalting combined together
+
+so no one can guess the actual password by looking as the referenced password
 
 ```python
 passYouCanStore = obj.returnEncryptedPassword(password)
 ```
 
-now you can store this encrypted string any where
+now you can store this encrypted string any where and then pass this string in below method to authenticate 
 
 #### Authenticate the input password and pin (123456 by default if not provided) using previously stored password
-
-Password is encrypted using SHA256 algo here
 
 ```python
 isCorrect = obj.authenticatePassword(storedPass , passwordInput , pinInput = 123456)
@@ -93,7 +95,7 @@ isCorrect = obj.authenticatePassword(storedPass , passwordInput , pinInput = 123
 This function returns True or False depending on if the password + pin input matches the stored password + pin
 
 
-## encrypting
+## encrypting string data types 
 
 after setting the password call this method and pass on the string to be encrypted here
 
@@ -101,15 +103,115 @@ after setting the password call this method and pass on the string to be encrypt
 encrypted_string = obj.encrypter(passStringHere)
 ```
 
-this is going to diff next time even if you set the same stuff
+this is going to diff next time even if you set the same stuff , which gives it a unbreable security 
 
-## decrypting
+## decrypting string data types
 
 after setting the password call this method and pass on the ecnrypted string here
 
 ```python
 decrypted_string = obj.decrypter(passStringHere)
 ```
+
+
+## encrypting file
+
+after setting the password call this method and pass the file path here which is going to be encrypted
+
+Here the crypto fernet encryption technique is used to encrypt the bytes data of the file
+
+```python
+for i in obj.encryptFile(path_to_file , path_to_destination):
+   pass
+```
+
+path to destination is the folder path were the encrypted file is going to be stored
+
+function is set to yield the status update while running so you require a loop to run the method 
+
+i will be reveice the status codes of the method which can be used to make loading bars for large files 
+
+1. 0 represent that the file is successfully opened for encryption
+
+2. 1 represent that the key is generated suucessfully
+
+3. 2 represent that the file is been encrypted 
+
+4. 3 represent that the encrypted file is been written suucessfully
+
+
+## decrypting file
+
+after setting the password call this method and pass the encrypted file path here which is going to be decrypted
+
+```python
+for i in obj.decryptFile(path_to_encrypted_file , path_to_destination):
+   pass
+```
+
+path to destination is the folder path were the decrypted file is going to be stored
+
+function is set to yield the status update while running so you require a loop to run the method 
+
+i will be reveice the status codes of the method which can be used to make loading bars for large files 
+
+1. 0 represent that the file is successfully opened for decryption
+
+2. 1 represent that the key is readed suucessfully
+
+3. 2 represent that the file is been decrypted 
+
+4. 3 represent that the decrypted file is been written suucessfully
+
+
+It will raise a RuntimeError("password / pin does not match ... ") if the password and pin entered are incorrect 
+
+sometimes - one in thousands you can face this error even if you enter the exact password , then you should try again and error should be resolved 
+
+## encrypting directiories
+
+after setting the password call this method and pass the dir path here which is going to be encrypted
+
+this method encrytes every file inside the dir recursively that is files inside sub folder are also taken into consideration
+
+```python
+for i in obj.encryptDir(path_to_dir , path_to_destination):
+   pass
+```
+
+path to destination is the folder path were the encrypted directory is going to be stored
+
+
+function is set to yield the status update while running so you require a loop to run the method 
+
+i will be reveice the status codes of the method which can be used to make loading bars for large dirs
+
+first the total no of files will be yield and then after one file is encrypted it will yield how many files are left till no file is left 
+
+note - please do not store any other file in this folder as then the decryption will be possible 
+
+
+## encrypting directiories
+
+after setting the password call this method and pass the dir path here which is going to be encrypted
+
+Note - any other file found other than the files encrypted using this module will result in hault of the decryption process 
+
+```python
+for i in obj.decryptDir(path_to_encryptedDir , path_to_destination):
+   pass
+```
+
+path to destination is the folder path were the decrypted directory is going to be stored
+
+it will be same as the dir which is used to make the encrypted dir just hidden folder will now be visible , you have to make them hidden again if you want 
+
+
+function is set to yield the status update while running so you require a loop to run the method 
+
+i will be reveice the status codes of the method which can be used to make loading bars for large dirs
+
+first the total no of files will be yield and then after one file is decrypted it will yield how many files are left till no file is left 
 
 
 ## making things more secure 
@@ -123,7 +225,7 @@ It is recommend that follow these steps for a unbreakable encrytion
 3. you non guessable passwords i.e password does not reflect your daily habits etc
 
 
-## Sample program - 
+## Sample program 1 for string data types - 
 ```python 
 from easySED import SED
 
@@ -181,6 +283,43 @@ else:
 
 # As you can see in output , both time the encrypted string is diff 
 ```
+
+
+## Sample program 1 for file - 
+```python 
+from easySED import SED
+
+e = SED.ED()    
+
+e.setPassword_Pin("#123hello" , "236598")
+
+for i in e.encryptFile(r"Z:\docx\python.docx" , r"C:\Users\harsh\Desktop"):
+   pass
+
+for i in e.decryptFile(r"C:\Users\harsh\Desktop\python.docx__enc"  , r"C:\Users\harsh\Desktop"):
+   pass
+
+```
+
+## Sample program 1 for file - 
+```python 
+from easySED import SED
+
+e = SED.ED()    
+
+e.setPassword_Pin("#123hello" , "236598")
+
+for i in e.encryptDir(r"Z:\docx" , r"C:\Users\harsh\Desktop\hello"):
+   print(i)
+
+for i in e.decryptDir(r"C:\Users\harsh\Desktop\hello" , r"C:\Users\harsh\Desktop\hello2"):
+   print(i)
+
+```
+
+
+
+
 
 ### Contibute & report bugs  - 
 
