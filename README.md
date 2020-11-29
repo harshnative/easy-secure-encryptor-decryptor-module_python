@@ -1,5 +1,8 @@
 # Easy Secure Encryptor Decryptor module
 
+
+[For reading docs on website , click here ...](https://letscodeofficial.com/pySEDDocs)
+
 This module to used to add military level encryption system to your project , encrypt strings , files and even whole directories etc"
 
 Main Users : 
@@ -227,7 +230,7 @@ It is recommend that follow these steps for a unbreakable encrytion
 3. you non guessable passwords i.e password does not reflect your daily habits etc
 
 
-## Sample program 1 for string data types - 
+## Sample program for string data types - 
 ```python 
 from easySED import SED
 
@@ -287,7 +290,7 @@ else:
 ```
 
 
-## Sample program 1 for file - 
+## Sample program for file - 
 ```python 
 from easySED import SED
 
@@ -303,7 +306,7 @@ for i in e.decryptFile(r"C:\Users\harsh\Desktop\python.docx__enc"  , r"C:\Users\
 
 ```
 
-## Sample program 1 for file - 
+## Sample program for file - 
 ```python 
 from easySED import SED
 
