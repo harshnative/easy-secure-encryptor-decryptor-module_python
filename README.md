@@ -306,7 +306,7 @@ for i in e.decryptFile(r"C:\Users\harsh\Desktop\python.docx__enc"  , r"C:\Users\
 
 ```
 
-## Sample program for file - 
+## Sample program for Dir - 
 ```python 
 from easySED import SED
 
